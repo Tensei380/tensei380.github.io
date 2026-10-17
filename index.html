@@ -1,1 +1,128 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Print & Cyber Cafe Tools</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f7faf9;color:#17201d;font-family:Arial,sans-serif}
+header{margin:18px auto;padding:34px 16px;text-align:center;
+width:min(1100px,94%);border-radius:18px;
+background:linear-gradient(110deg,#24d66b,#eafff1,#31d775);
+box-shadow:0 8px 20px #00000012}
+h1{font-size:clamp(25px,4vw,38px);margin:0 0 12px}
+header p{font-size:14px;line-height:1.6;margin:0}
+main{width:min(1100px,94%);margin:28px auto}
+h2{font-size:18px;border-left:4px solid #28c66a;padding-left:9px;margin:28px 0 14px}
+.grid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px}
+.card{position:relative;background:white;border:1px solid #c8eee0;
+border-radius:17px;min-height:118px;padding:12px 5px;
+display:flex;flex-direction:column;align-items:center;justify-content:center;
+gap:10px;text-align:center;text-decoration:none;color:#354052;
+box-shadow:0 2px 2px #00000008;transition:.2s}
+.card:hover{transform:translateY(-3px);box-shadow:0 7px 18px #00000010}
+.ico{width:52px;height:52px;border-radius:15px;background:#20c978;
+display:grid;place-items:center;font-size:27px}
+.card:nth-child(3n+1) .ico{background:#8748f6}
+.card:nth-child(3n+2) .ico{background:#2699ef}
+.card b{font-size:12px;line-height:1.4}
+.tag{position:absolute;right:6px;top:5px;background:#ff4264;
+color:white;font-size:9px;padding:3px 5px;border-radius:10px}
+.search{width:100%;padding:14px 16px;border:1px solid #c8e8db;
+border-radius:12px;font-size:15px;outline-color:#24c86c;background:white}
+.empty{display:none;text-align:center;padding:25px;color:#65716b}
+footer{text-align:center;padding:24px;color:#748078;font-size:12px}
+@media(max-width:800px){.grid{grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}}
+@media(max-width:380px){.grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+</style>
+</head>
+<body>
+<header>
+<h1>Smart Print & Cyber Cafe Tools</h1>
+<p>AI document crop, passport size photos, PDF tools and A4 print layouts — all in one<br>
+place for cyber cafes, students and print shops.</p>
+</header>
+
+<main>
+<input class="search" id="search" type="search"
+placeholder="🔎 Search tools...">
+
+<section class="category">
+<h2>Essential & Services</h2>
+<div class="grid">
+<a class="card" href="#ai-crop"><span class="ico">📄</span><b>AI Document Crop</b></a>
+<a class="card" href="#id-card"><span class="ico">🪪</span><b>ID Card Print</b></a>
+<a class="card" href="#pvc"><span class="ico">✂️</span><b>PVC Auto Crop</b></a>
+<a class="card" href="#auto-print"><span class="ico">🖨️</span><b>Auto Print</b></a>
+<a class="card" href="#passport"><span class="ico">🪪</span><b>Passport Photo</b></a>
+<a class="card" href="#photo-resize"><span class="ico">🖼️</span><b>Photo Crop And Resize</b></a>
+<a class="card" href="#resume"><span class="ico">📑</span><b>Resume/CV</b></a>
+<a class="card" href="#service-post"><span class="ico">📋</span><b>New Service Post</b></a>
+<a class="card" href="#payment-qr"><span class="ico">▦</span><b>Payment QR</b><span class="tag">HOT</span></a>
+<a class="card" href="#album"><span class="ico">📚</span><b>Document Album</b></a>
+</div>
+</section>
+
+<section class="category">
+<h2>Photo Print Tools</h2>
+<div class="grid">
+<a class="card" href="#remove-bg"><span class="ico">🌄</span><b>Remove BG</b><span class="tag">NEW</span></a>
+<a class="card" href="#a4-print"><span class="ico">🗂️</span><b>A4 Photo Print</b><span class="tag">NEW</span></a>
+<a class="card" href="#4x6-print"><span class="ico">🖼️</span><b>4×6 Photo Print</b><span class="tag">NEW</span></a>
+<a class="card" href="#photos-a4"><span class="ico">👥</span><b>4×6 Photos On A4</b></a>
+<a class="card" href="#notary"><span class="ico">📝</span><b>Notary Photo Maker</b></a>
+<a class="card" href="#joint-photo"><span class="ico">👨‍👩‍👧</span><b>Joint Photo Maker</b></a>
+</div>
+</section>
+
+<section class="category">
+<h2>Creative Design Studio</h2>
+<div class="grid">
+<a class="card" href="#pro-resume"><span class="ico">📘</span><b>Pro Resume Maker</b></a>
+<a class="card" href="#biodata"><span class="ico">💌</span><b>Marriage Biodata</b></a>
+<a class="card" href="#pro-id"><span class="ico">🪪</span><b>Pro ID Maker</b></a>
+<a class="card" href="#poster"><span class="ico">📸</span><b>Pro Poster Maker</b></a>
+<a class="card" href="#application"><span class="ico">📋</span><b>Application Maker</b></a>
+<a class="card" href="#promotion"><span class="ico">📢</span><b>Shop Promotion Maker</b></a>
+</div>
+</section>
+
+<section class="category">
+<h2>Smart PDF & Image Tools</h2>
+<div class="grid">
+<a class="card" href="#jpg-pdf"><span class="ico">📄</span><b>JPG To PDF</b></a>
+<a class="card" href="#pdf-jpg"><span class="ico">🖼️</span><b>PDF To JPG</b></a>
+<a class="card" href="#png-pdf"><span class="ico">📑</span><b>PNG To PDF</b></a>
+<a class="card" href="#png-jpg"><span class="ico">🌄</span><b>PNG To JPG</b></a>
+<a class="card" href="#delete-page"><span class="ico">🗑️</span><b>Delete PDF Page</b></a>
+<a class="card" href="#merge-pdf"><span class="ico">📚</span><b>Merge PDF</b></a>
+</div>
+</section>
+<p id="empty" class="empty">No matching tools found.</p>
+</main>
+
+<footer>Smart Print & Cyber Cafe Tools · Made for everyday printing</footer>
+
+<script>
+const search=document.getElementById('search');
+search.addEventListener('input',()=>{
+ const q=search.value.toLowerCase().trim();
+ let total=0;
+ document.querySelectorAll('.category').forEach(section=>{
+  let count=0;
+  section.querySelectorAll('.card').forEach(card=>{
+   const match=card.innerText.toLowerCase().includes(q);
+   card.style.display=match?'flex':'none';
+   if(match)count++;
+  });
+  section.style.display=count?'block':'none';
+  total+=count;
+ });
+ document.getElementById('empty').style.display=total?'none':'block';
+});
+</script>
+</body>
+</html>
+
