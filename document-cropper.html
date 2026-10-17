@@ -1,1 +1,310 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Document Cropper | Smart Print</title>
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.css">
+
+<style>
+*{box-sizing:border-box}
+body{margin:0;background:#f4f8f6;color:#17231d;
+font-family:Arial,sans-serif}
+header{background:linear-gradient(110deg,#19c96b,#caffdc,#36d982);
+padding:24px 15px;text-align:center}
+header h1{font-size:26px;margin:0 0 8px}
+header p{font-size:14px;margin:0}
+.container{max-width:850px;margin:22px auto;padding:0 14px}
+.panel{background:white;border:1px solid #dcebe3;
+border-radius:16px;padding:18px;margin-bottom:16px;
+box-shadow:0 4px 15px #173d2710}
+h2{font-size:18px;margin:0 0 15px}
+input[type=file]{width:100%;padding:12px;background:#f4f8f6;
+border-radius:9px;border:1px solid #dcebe3}
+.preview{width:100%;max-height:480px;min-height:120px;
+background:#edf1ee;overflow:hidden;margin-top:14px;
+border-radius:10px;display:flex;align-items:center;
+justify-content:center}
+.preview img{display:block;max-width:100%;max-height:480px}
+#empty{text-align:center;color:#758179;padding:28px 8px}
+.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+gap:10px;margin-top:15px}
+button,select{font:inherit;padding:12px;border-radius:9px;
+border:1px solid #d5e4dc;background:white;color:#20372a;
+width:100%;min-height:44px}
+button{cursor:pointer;font-weight:600}
+button.primary{background:#18b965;color:white;border:0}
+button:disabled{opacity:.45;cursor:not-allowed}
+select{margin-top:10px}
+.status{font-size:13px;color:#65756b;margin-top:12px}
+a.back{display:inline-block;margin-bottom:14px;color:#13884b;
+text-decoration:none;font-weight:bold}
+footer{text-align:center;padding:20px;color:#718078;font-size:12px}
+@media(min-width:600px){
+.controls{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+</style>
+</head>
+
+<body>
+<header>
+<h1>📄 Document Cropper</h1>
+<p>Crop, rotate, preview and download your document</p>
+</header>
+
+<main class="container">
+<a class="back" href="./index.html">← Back to Home</a>
+
+<section class="panel">
+<h2>1. Upload Document</h2>
+<input id="fileInput" type="file" accept="image/*">
+
+<div class="preview" id="preview">
+<div id="empty">Choose a photo to start cropping.</div>
+<img id="image" alt="Uploaded document" hidden>
+</div>
+
+<label for="ratio">Crop ratio</label>
+<select id="ratio">
+<option value="free">Free crop</option>
+<option value="1">Square (1:1)</option>
+<option value="1.4142">A4 landscape ratio</option>
+<option value="0.7071">A4 portrait ratio</option>
+<option value="1.5">Photo (3:2)</option>
+<option value="0.6667">Portrait photo (2:3)</option>
+</select>
+
+<div class="controls">
+<button id="rotateLeft" disabled>↶ Rotate Left</button>
+<button id="rotateRight" disabled>↷ Rotate Right</button>
+<button id="zoomIn" disabled>＋ Zoom In</button>
+<button id="zoomOut" disabled>－ Zoom Out</button>
+<button id="reset" disabled>⟳ Reset Crop</button>
+<button id="cropBtn" class="primary" disabled>✂ Crop & Preview</button>
+</div>
+<p class="status" id="status" aria-live="polite">
+Upload an image to begin.
+</p>
+</section>
+
+<section class="panel">
+<h2>2. Final Result</h2>
+<div class="preview">
+<img id="result" alt="Cropped result" hidden>
+<div id="resultEmpty">Your cropped image will appear here.</div>
+</div>
+
+<div class="controls">
+<button id="download" class="primary" disabled>
+⬇ Download Image
+</button>
+<button id="print" disabled>🖨 Print Image</button>
+</div>
+</section>
+</main>
+
+<footer>Smart Print & Cyber Cafe Tools</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.2/cropper.min.js"></script>
+<script>
+const fileInput = document.getElementById('fileInput');
+const image = document.getElementById('image');
+const result = document.getElementById('result');
+const ratio = document.getElementById('ratio');
+const statusText = document.getElementById('status');
+
+let cropper = null;
+let originalUrl = null;
+let resultUrl = null;
+
+const buttons = [
+'rotateLeft','rotateRight','zoomIn','zoomOut','reset','cropBtn'
+].map(id => document.getElementById(id));
+
+function enableControls(enabled) {
+  buttons.forEach(button => button.disabled = !enabled);
+}
+
+function clearResult() {
+  if (resultUrl) URL.revokeObjectURL(resultUrl);
+  resultUrl = null;
+  result.removeAttribute('src');
+  result.hidden = true;
+  document.getElementById('resultEmpty').hidden = false;
+  document.getElementById('download').disabled = true;
+  document.getElementById('print').disabled = true;
+}
+
+function getRatio() {
+  return ratio.value === 'free' ? NaN : Number(ratio.value);
+}
+
+function updateRatio() {
+  if (cropper) cropper.setAspectRatio(getRatio());
+}
+
+fileInput.addEventListener('change', () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+
+  if (!file.type.startsWith('image/')) {
+    statusText.textContent = 'Please select an image file.';
+    fileInput.value = '';
+    return;
+  }
+
+  if (file.size > 15 * 1024 * 1024) {
+    statusText.textContent = 'Image is too large. Please select an image under 15 MB.';
+    fileInput.value = '';
+    return;
+  }
+
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+
+  clearResult();
+
+  if (originalUrl) URL.revokeObjectURL(originalUrl);
+  originalUrl = URL.createObjectURL(file);
+
+  image.onload = () => {
+    document.getElementById('empty').hidden = true;
+    image.hidden = false;
+
+    cropper = new Cropper(image, {
+      viewMode: 1,
+      dragMode: 'crop',
+      autoCropArea: 0.9,
+      responsive: true,
+      background: false,
+      aspectRatio: getRatio(),
+      movable: true,
+      zoomable: true,
+      rotatable: true,
+      scalable: true,
+      checkOrientation: true
+    });
+
+    enableControls(true);
+    statusText.textContent =
+      'Drag the crop box or its corners to select the document.';
+  };
+
+  image.onerror = () => {
+    statusText.textContent = 'Could not load this image. Try another file.';
+    enableControls(false);
+  };
+
+  image.src = originalUrl;
+});
+
+ratio.addEventListener('change', updateRatio);
+
+document.getElementById('rotateLeft').onclick =
+  () => cropper && cropper.rotate(-90);
+
+document.getElementById('rotateRight').onclick =
+  () => cropper && cropper.rotate(90);
+
+document.getElementById('zoomIn').onclick =
+  () => cropper && cropper.zoom(0.1);
+
+document.getElementById('zoomOut').onclick =
+  () => cropper && cropper.zoom(-0.1);
+
+document.getElementById('reset').onclick = () => {
+  if (cropper) {
+    cropper.reset();
+    updateRatio();
+    clearResult();
+    statusText.textContent = 'Crop selection reset.';
+  }
+};
+
+document.getElementById('cropBtn').onclick = () => {
+  if (!cropper) return;
+
+  try {
+    const canvas = cropper.getCroppedCanvas({
+      maxWidth: 4000,
+      maxHeight: 4000,
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
+    });
+
+    if (!canvas) throw new Error('Crop failed');
+
+    canvas.toBlob(blob => {
+      if (!blob) {
+        statusText.textContent = 'Could not create image. Try again.';
+        return;
+      }
+
+      if (resultUrl) URL.revokeObjectURL(resultUrl);
+      resultUrl = URL.createObjectURL(blob);
+      result.src = resultUrl;
+      result.hidden = false;
+      document.getElementById('resultEmpty').hidden = true;
+      document.getElementById('download').disabled = false;
+      document.getElementById('print').disabled = false;
+      statusText.textContent = 'Crop complete! Preview your image below.';
+    }, 'image/jpeg', 0.95);
+  } catch (error) {
+    statusText.textContent = 'Cropping failed. Please reset and try again.';
+  }
+};
+
+document.getElementById('download').onclick = () => {
+  if (!resultUrl) return;
+
+  const link = document.createElement('a');
+  link.href = resultUrl;
+  link.download = 'cropped-document.jpg';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+};
+
+document.getElementById('print').onclick = () => {
+  if (!resultUrl) return;
+
+  const printWindow = window.open('', '_blank');
+  if (!printWindow) {
+    statusText.textContent =
+      'Print window blocked. Allow pop-ups and try again.';
+    return;
+  }
+
+  const safeUrl = resultUrl;
+  printWindow.document.write(`
+    <!DOCTYPE html><html><head><title>Print Document</title>
+    <style>
+    body{margin:0;text-align:center}
+    img{max-width:100%;max-height:95vh;object-fit:contain}
+    @page{margin:10mm}
+    </style></head><body>
+    <img id="printImage" alt="Cropped document">
+    <script>
+    const img=document.getElementById('printImage');
+    img.onload=()=>{window.focus();window.print();};
+    img.onerror=()=>window.close();
+    img.src=${JSON.stringify(safeUrl)};
+    <\/script></body></html>
+  `);
+  printWindow.document.close();
+};
+
+window.addEventListener('beforeunload', () => {
+  if (cropper) cropper.destroy();
+  if (originalUrl) URL.revokeObjectURL(originalUrl);
+  if (resultUrl) URL.revokeObjectURL(resultUrl);
+});
+</script>
+</body>
+</html>
+
