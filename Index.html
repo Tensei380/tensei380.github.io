@@ -1,0 +1,302 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FileDrop - File Sharing</title>
+
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    background: #080b12;
+    color: #fff;
+    min-height: 100vh;
+}
+
+header {
+    height: 75px;
+    padding: 0 8%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #202636;
+}
+
+.logo {
+    font-size: 25px;
+    font-weight: bold;
+    color: #60a5fa;
+}
+
+nav a {
+    color: #aaa;
+    text-decoration: none;
+    margin-left: 25px;
+    font-size: 14px;
+}
+
+main {
+    max-width: 850px;
+    margin: 100px auto;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    font-size: clamp(35px, 6vw, 55px);
+    margin-bottom: 18px;
+}
+
+h1 span {
+    color: #60a5fa;
+}
+
+.subtitle {
+    color: #929bad;
+    line-height: 1.7;
+    margin-bottom: 40px;
+}
+
+.upload-box {
+    background: #111827;
+    border: 2px dashed #34445d;
+    border-radius: 20px;
+    padding: 55px 20px;
+    transition: .3s;
+}
+
+.upload-box:hover,
+.upload-box.dragover {
+    border-color: #60a5fa;
+    background: #142033;
+}
+
+.upload-icon {
+    font-size: 55px;
+    margin-bottom: 20px;
+}
+
+.upload-box h2 {
+    font-size: 21px;
+    margin-bottom: 12px;
+}
+
+.upload-box p {
+    color: #929bad;
+    font-size: 14px;
+    margin-bottom: 25px;
+}
+
+button {
+    background: #3b82f6;
+    border: none;
+    padding: 13px 25px;
+    color: white;
+    border-radius: 9px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: .2s;
+}
+
+button:hover {
+    background: #2563eb;
+    transform: translateY(-2px);
+}
+
+#fileInput {
+    display: none;
+}
+
+#fileInfo {
+    margin-top: 25px;
+    color: #aab6c9;
+    font-size: 14px;
+    overflow-wrap: anywhere;
+}
+
+.progress {
+    height: 7px;
+    background: #273449;
+    border-radius: 10px;
+    margin-top: 18px;
+    overflow: hidden;
+    display: none;
+}
+
+.progress-bar {
+    height: 100%;
+    width: 0%;
+    background: #60a5fa;
+    transition: width .2s;
+}
+
+.features {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 35px;
+}
+
+.feature {
+    background: #111827;
+    border: 1px solid #202c40;
+    border-radius: 12px;
+    padding: 22px 10px;
+    color: #cbd5e1;
+    font-size: 14px;
+}
+
+.feature strong {
+    display: block;
+    margin-bottom: 10px;
+    color: white;
+    font-size: 16px;
+}
+
+footer {
+    text-align: center;
+    color: #657087;
+    padding: 30px 15px;
+    font-size: 13px;
+}
+
+@media(max-width:600px) {
+    header {
+        padding: 0 5%;
+    }
+
+    nav a {
+        margin-left: 10px;
+        font-size: 12px;
+    }
+
+    main {
+        margin: 65px auto;
+    }
+
+    .features {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <div class="logo">FileDrop.</div>
+    <nav>
+        <a href="#upload">Upload</a>
+        <a href="#features">Features</a>
+    </nav>
+</header>
+
+<main>
+
+    <h1>Share Files <span>Instantly.</span></h1>
+
+    <p class="subtitle">
+        Upload your files and share them anywhere.<br>
+        Simple, fast and convenient file sharing.
+    </p>
+
+    <section class="upload-box" id="uploadBox">
+
+        <div class="upload-icon">☁️</div>
+
+        <h2>Drop your files here</h2>
+
+        <p>Choose files from your device to get started.</p>
+
+        <input type="file" id="fileInput" multiple>
+
+        <button id="selectBtn">Select Files</button>
+
+        <div id="fileInfo">No files selected</div>
+
+        <div class="progress" id="progress">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+
+    </section>
+
+    <section class="features" id="features">
+
+        <div class="feature">
+            <strong>⚡ Fast Upload</strong>
+            Simple file selection
+        </div>
+
+        <div class="feature">
+            <strong>🔗 Easy Sharing</strong>
+            Share files with links
+        </div>
+
+        <div class="feature">
+            <strong>📱 Responsive</strong>
+            Works on mobile and PC
+        </div>
+
+    </section>
+
+</main>
+
+<footer>
+    © 2026 FileDrop. All rights reserved.
+</footer>
+
+<script>
+const fileInput = document.getElementById("fileInput");
+const selectBtn = document.getElementById("selectBtn");
+const uploadBox = document.getElementById("uploadBox");
+const fileInfo = document.getElementById("fileInfo");
+
+selectBtn.addEventListener("click", () => {
+    fileInput.click();
+});
+
+fileInput.addEventListener("change", () => {
+    const files = fileInput.files;
+
+    if (!files.length) return;
+
+    fileInfo.textContent =
+        files.length + " file(s) selected";
+
+    Array.from(files).forEach(file => {
+        console.log("Selected:", file.name);
+    });
+});
+
+uploadBox.addEventListener("dragover", event => {
+    event.preventDefault();
+    uploadBox.classList.add("dragover");
+});
+
+uploadBox.addEventListener("dragleave", () => {
+    uploadBox.classList.remove("dragover");
+});
+
+uploadBox.addEventListener("drop", event => {
+    event.preventDefault();
+    uploadBox.classList.remove("dragover");
+
+    const files = event.dataTransfer.files;
+
+    if (!files.length) return;
+
+    fileInfo.textContent =
+        files.length + " file(s) selected";
+});
+</script>
+
+</body>
+  </html>
+  
