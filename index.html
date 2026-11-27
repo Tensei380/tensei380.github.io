@@ -1,12 +1,547 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FileDrop - File Sharing</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+
+body{
+background:#080d18;
+color:#fff;
+font-family:Arial,sans-serif;
+min-height:100vh;
+}
+
+header{
+height:75px;
+padding:0 7%;
+display:flex;
+align-items:center;
+justify-content:space-between;
+border-bottom:1px solid #243047;
+}
+
+.logo{
+font-size:27px;
+font-weight:bold;
+color:#60a5fa;
+}
+
+.logo span{color:white}
+
+nav a{
+color:#aab4c5;
+text-decoration:none;
+margin-left:22px;
+font-size:14px;
+}
+
+main{
+max-width:850px;
+margin:65px auto;
+padding:20px;
+text-align:center;
+}
+
+h1{
+font-size:clamp(36px,6vw,55px);
+margin-bottom:15px;
+}
+
+h1 span{color:#60a5fa}
+
+.subtitle{
+color:#9ba8bc;
+line-height:1.8;
+margin-bottom:35px;
+}
+
+.upload-box{
+background:#111b2c;
+border:2px dashed #405779;
+border-radius:20px;
+padding:45px 20px;
+transition:.3s;
+}
+
+.upload-box.dragover{
+border-color:#60a5fa;
+background:#172a43;
+}
+
+.upload-icon{
+font-size:60px;
+margin-bottom:15px;
+}
+
+.upload-box h2{
+margin-bottom:12px;
+font-size:22px;
+}
+
+.upload-box p{
+color:#9ba8bc;
+font-size:14px;
+line-height:1.8;
+margin-bottom:22px;
+}
+
+button{
+background:#3b82f6;
+border:0;
+padding:13px 23px;
+color:white;
+border-radius:9px;
+font-size:14px;
+cursor:pointer;
+}
+
+button:hover:not(:disabled){background:#2563eb}
+button:disabled{opacity:.5;cursor:not-allowed}
+
+#fileInput{display:none}
+
+#status{
+margin-top:22px;
+font-size:14px;
+color:#aab6c9;
+overflow-wrap:anywhere;
+line-height:1.6;
+}
+
+.file-list{
+margin-top:25px;
+text-align:left;
+}
+
+.file-item{
+background:#111b2c;
+border:1px solid #293a55;
+border-radius:13px;
+padding:17px;
+margin-bottom:13px;
+overflow-wrap:anywhere;
+}
+
+.file-name{
+font-weight:bold;
+margin-bottom:8px;
+}
+
+.file-meta{
+color:#91a0b6;
+font-size:12px;
+margin-bottom:13px;
+}
+
+.file-actions{
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+}
+
+.file-actions button{padding:9px 14px}
+
+.copy-btn{background:#293b55}
+.copy-btn:hover:not(:disabled){background:#3a506e}
+
+#qrSection{
+display:none;
+margin-top:25px;
+background:#111b2c;
+padding:25px;
+border-radius:15px;
+}
+
+#qrcode{
+background:white;
+display:inline-block;
+padding:12px;
+margin:18px auto;
+min-width:204px;
+min-height:204px;
+}
+
+.features{
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:15px;
+margin-top:30px;
+}
+
+.feature{
+background:#111b2c;
+border:1px solid #263750;
+border-radius:13px;
+padding:22px 10px;
+color:#aab6c9;
+font-size:13px;
+}
+
+.feature strong{
+display:block;
+color:white;
+margin-bottom:10px;
+font-size:15px;
+}
+
+footer{
+text-align:center;
+padding:30px;
+color:#687891;
+font-size:13px;
+}
+
+@media(max-width:600px){
+header{padding:0 5%}
+nav a{margin-left:10px;font-size:12px}
+main{margin:35px auto}
+.features{grid-template-columns:1fr}
+.upload-box{padding:35px 15px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+<div class="logo">FileDrop<span>.</span></div>
+<nav>
+<a href="#upload">Upload</a>
+<a href="#features">Features</a>
+</nav>
+</header>
+
+<main>
+
+<h1>Share Files <span>Instantly.</span></h1>
+
+<p class="subtitle">
+Upload your files and share them anywhere.<br>
+Fast, simple and convenient file sharing.
+</p>
+
+<section class="upload-box" id="uploadBox">
+
+<div class="upload-icon">☁️</div>
+
+<h2>Drop your files here</h2>
+
+<p>
+Select PDF, JPG or PNG files from your device.<br>
+Maximum file size: 50 MB per file.
+</p>
+
+<input
+type="file"
+id="fileInput"
+multiple
+accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png"
+>
+
+<button id="selectBtn" type="button">
+Select Files
+</button>
+
+<div id="status">Ready to upload</div>
+
+</section>
+
+<div class="file-list" id="fileList"></div>
+
+<section id="qrSection">
+<h3>Share with QR Code</h3>
+<div id="qrcode"></div>
+<br>
+<button class="copy-btn" id="closeQR">Close</button>
+</section>
+
+<section class="features" id="features">
+
+<div class="feature">
+<strong>⚡ Fast Upload</strong>
+Easy file uploading
+</div>
+
+<div class="feature">
+<strong>🔗 Share Links</strong>
+Direct file links
+</div>
+
+<div class="feature">
+<strong>📱 QR Sharing</strong>
+Scan and download
+</div>
+
+</section>
+
+</main>
+
+<footer>
+© 2026 FileDrop. All rights reserved.
+</footer>
+
+<script>
+"use strict";
+
+// SUPABASE CONFIGURATION
+
 const SUPABASE_URL =
 "https://usmsnkkcebynkbqjtjcg.supabase.co";
 
 const SUPABASE_KEY =
 "sb_publishable_GID3HHcU8jYIC7mQ-yI9jw_VaMzpDYc";
 
+const BUCKET = "filedrop";
+const MAX_SIZE = 50 * 1024 * 1024;
+
+// INITIALIZE
+
 const supabase = window.supabase.createClient(
-    SUPABASE_URL,
-    SUPABASE_KEY
+SUPABASE_URL,
+SUPABASE_KEY
 );
 
-const BUCKET = "filedrop";
+const fileInput = document.getElementById("fileInput");
+const selectBtn = document.getElementById("selectBtn");
+const uploadBox = document.getElementById("uploadBox");
+const status = document.getElementById("status");
+const fileList = document.getElementById("fileList");
+
+let uploading = false;
+
+// ALLOWED FILE TYPES
+
+function validFile(file) {
+const allowed = [
+"image/png",
+"image/jpeg",
+"application/pdf"
+];
+
+return allowed.includes(file.type);
+}
+
+// FORMAT SIZE
+
+function formatSize(bytes) {
+if(bytes < 1024) return bytes + " B";
+if(bytes < 1048576) return (bytes/1024).toFixed(2) + " KB";
+return (bytes/1048576).toFixed(2) + " MB";
+}
+
+// SELECT FILES
+
+selectBtn.addEventListener("click", () => {
+if(!uploading) fileInput.click();
+});
+
+fileInput.addEventListener("change", async () => {
+const files = Array.from(fileInput.files || []);
+fileInput.value = "";
+await uploadFiles(files);
+});
+
+// DRAG AND DROP
+
+uploadBox.addEventListener("dragover", e => {
+e.preventDefault();
+if(!uploading) uploadBox.classList.add("dragover");
+});
+
+uploadBox.addEventListener("dragleave", () => {
+uploadBox.classList.remove("dragover");
+});
+
+uploadBox.addEventListener("drop", async e => {
+e.preventDefault();
+uploadBox.classList.remove("dragover");
+if(uploading) return;
+await uploadFiles(Array.from(e.dataTransfer.files || []));
+});
+
+// UPLOAD
+
+async function uploadFiles(files) {
+
+if(!files.length || uploading) return;
+
+uploading = true;
+selectBtn.disabled = true;
+
+let success = 0;
+let failed = 0;
+
+try {
+
+for(const file of files) {
+
+if(!validFile(file)) {
+status.textContent = "Only PDF, JPG and PNG are allowed: " + file.name;
+failed++;
+continue;
+}
+
+if(file.size === 0 || file.size > MAX_SIZE) {
+status.textContent = "Invalid file size (maximum 50 MB): " + file.name;
+failed++;
+continue;
+}
+
+status.textContent = "Uploading: " + file.name;
+
+try {
+
+const safeName = file.name.replace(
+/[^a-zA-Z0-9._-]/g,"_"
+);
+
+const path = crypto.randomUUID() + "/" + safeName;
+
+const {data,error} = await supabase.storage
+.from(BUCKET)
+.upload(path,file,{
+cacheControl:"3600",
+upsert:false,
+contentType:file.type
+});
+
+if(error) throw error;
+
+const {data:publicData} = supabase.storage
+.from(BUCKET)
+.getPublicUrl(data.path);
+
+if(!publicData.publicUrl) {
+throw new Error("Public URL unavailable");
+}
+
+addFile(file.name,file.size,publicData.publicUrl);
+success++;
+
+} catch(err) {
+console.error(err);
+failed++;
+status.textContent = "Upload failed: " + err.message;
+}
+
+}
+
+status.textContent =
+"Completed! Uploaded: " + success + " | Failed: " + failed;
+
+} finally {
+uploading = false;
+selectBtn.disabled = false;
+}
+
+}
+
+// ADD FILE
+
+function addFile(name,size,url) {
+
+const item = document.createElement("div");
+item.className = "file-item";
+
+const title = document.createElement("div");
+title.className = "file-name";
+title.textContent = "📄 " + name;
+
+const meta = document.createElement("div");
+meta.className = "file-meta";
+meta.textContent = formatSize(size);
+
+const actions = document.createElement("div");
+actions.className = "file-actions";
+
+// DOWNLOAD
+
+const download = document.createElement("button");
+download.textContent = "Download";
+download.addEventListener("click",() => {
+window.open(url,"_blank","noopener,noreferrer");
+});
+
+// COPY LINK
+
+const copy = document.createElement("button");
+copy.className = "copy-btn";
+copy.textContent = "Copy Link";
+
+copy.addEventListener("click",async () => {
+try {
+await navigator.clipboard.writeText(url);
+copy.textContent = "Copied!";
+} catch {
+window.prompt("Copy this link:",url);
+}
+});
+
+// QR CODE
+
+const qr = document.createElement("button");
+qr.className = "copy-btn";
+qr.textContent = "QR Code";
+qr.addEventListener("click",() => showQR(url));
+
+actions.append(download,copy,qr);
+item.append(title,meta,actions);
+
+fileList.prepend(item);
+
+}
+
+// QR GENERATOR
+
+function showQR(url) {
+
+if(typeof QRCode === "undefined") {
+status.textContent = "QR library not loaded. Check internet.";
+return;
+}
+
+const section = document.getElementById("qrSection");
+const container = document.getElementById("qrcode");
+
+section.style.display = "block";
+container.innerHTML = "";
+
+new QRCode(container,{
+text:url,
+width:180,
+height:180,
+correctLevel:QRCode.CorrectLevel.M
+});
+
+section.scrollIntoView({
+behavior:"smooth",
+block:"center"
+});
+
+}
+
+// CLOSE QR
+
+document.getElementById("closeQR").addEventListener("click",() => {
+document.getElementById("qrSection").style.display = "none";
+});
+
+// CHECK LIBRARIES
+
+if(!window.supabase || typeof QRCode === "undefined") {
+status.textContent = "Library loading error. Check internet connection.";
+selectBtn.disabled = true;
+}
+
+</script>
+
+</body>
+</html>
